@@ -2,15 +2,13 @@
 # -*- coding: UTF-8 -*-
 
 import math, shelve, io, contextlib, re, itertools as it
-#from ctypes import c_char_p, c_double, cdll
+from ctypes import c_char_p, c_double, cdll
 import procUtils as pu
 from multiprocessing import Process, Pool, Queue, Manager
 
 from fileUtils import *
 from launcher import getTxtArgsCmd, getArgsCmd
-#import pdb
-
-import datetime as dt
+import pdb
 
 ln_10 = math.log(10)
 line_log_threshold = 100000
@@ -47,9 +45,9 @@ LM_KEY = 'Top 5000 LM'
 #TOP_5K_LM_FILENAME = 'Top 5000 LM'
 
 
+import datetime as dt
 def time_print(str):
 	print(('%s  %s'%(dt.datetime.now().strftime(DATE_FORMAT), str)))
-
 
 def parse_srilm_lm_iterator(srilm_lm):
 	dict = set()
@@ -814,19 +812,16 @@ def get_counts_filename_for(src_filename):
 	return res
 
 
-
 def get_create_srilm_ng_counts_cmd(src_filename):
 	cmd = ShellCmd(CREATE_STAT_CMD_TMPL)
 	cmd.extend_args('-text', src_filename, '-write', get_counts_filename_for(src_filename))
 	return cmd
 
-
 def ng_count(afWait=True, input_text=None, *add_args):
 	cmd = ShellCmd(CREATE_STAT_CMD_TMPL)
 	#cmd.append_arg('-tolower')
 	cmd.extend_args(*add_args)
-	return cmd.launch(afWait, stdindata=input_text, stdin=sys.stdin)
-
+	return cmd.launch(afWait, input_text)
 
 def create_srilm_lm(counts_filename, afWait=True, input_text=None, *add_args):
 	add_args.extend(('-read', counts_filename))
@@ -1018,13 +1013,13 @@ def create_lm_1_op(ngram_N, src_path, file_mask, dst_path, vocab_file):
 	ngc_proc.wait()
 
 
-def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path=None, file_prefix='', prev_stats=None):
-	"create_ngram_stats arguments: order, src_path, file_mask, dst_path, tmp_path=None, file_prefix='', prev_stats=None"
+def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path, prev_stats=None):
+	'create_ngram_stats arguments: order, src_path, file_mask, dst_path, tmp_path, prev_stats'
 
 	def create_new_ng_count_process():
 		s_counts_file_idx = str(len(ngc_stats_proc_lst))
-		counts_fname = tmp_path+(DEFAULT_COUNTS_FILE+'.'+s_counts_file_idx)
-		ngc_args = [ False, None, '-order', str(order), '-text', '-', '-sort', '-write', counts_fname.to_fs() ]
+		counts_fname = tmp_path+(DEFAULT_COUNTS_FILE+'_'+s_counts_file_idx)
+		ngc_args = [False, None, '-order', str(order), '-text', '-', '-sort', '-write', counts_fname.to_fs()]
 		if prev_stats:
 			ngc_args.extend(('-read', str(prev_stats)))
 
@@ -1032,10 +1027,6 @@ def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path=None, file
 		ngc_stats_proc_lst.append(ngc_stats_proc)
 		return ngc_stats_proc, counts_fname
 
-
-	import tempfile
-
-	tmp_path = tmp_path if tmp_path else tempfile.mkdtemp()
 	tmp_path = FilePathName(tmp_path)
 	dst_path = FilePathName(dst_path)
 	src_list = find_source_files(src_path, file_mask)	
@@ -1068,7 +1059,7 @@ def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path=None, file
 				count_files.append(counts_fname)
 
 			cur_block_len += len(line)
-			ngc_stats_proc.stdin.write(line.encode('utf8')+'\n')
+			ngc_stats_proc.stdin.write(line+'\n')
 			i += 1
 	
 	logDbg("Closing last stdin...")
@@ -1080,9 +1071,9 @@ def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path=None, file
 	
 	if 1<len(count_files):
 		logOut("Merging statistics...")
-		ng_counts_merge(count_files, dst_path+(file_prefix+DEFAULT_COUNTS_FILE))
+		ng_counts_merge(count_files, dst_path+DEFAULT_COUNTS_FILE)
 	else:
-		count_files[0].move_to(dst_path+(file_prefix+DEFAULT_COUNTS_FILE))
+		count_files[0].move_to(dst_path+DEFAULT_COUNTS_FILE)
 
 	logOut("Finished")
 
@@ -1141,29 +1132,18 @@ def create_lm_process(afWait, order, counts_path, model_path, vocab_file='', *sm
 	return ng_count(afWait, None, *args)
 
 
-def create_lm(order, src_path, dst_path, vocab_file='', file_prefix='', *smooth_args):
+def create_lm(order, src_path, dst_path, vocab_file='', *smooth_args):
 	'create_lm arguments: order, src_path, dst_path, vocab_file=None, *smooth_args'
 
-	create_lm_process(True, order, src_path+DEFAULT_COUNTS_FILE, dst_path+(file_prefix+DEFAULT_MODEL_FILE), vocab_file, *smooth_args)
+	create_lm_process(True, order, src_path+DEFAULT_COUNTS_FILE, dst_path+DEFAULT_MODEL_FILE, vocab_file, *smooth_args)
 	logOut("Finished")
 
 
-def normalize_create_full_lm(order, src_file, dst_file, model_path, file_prefix='', tmp_path=None, vocab_file='', *smooth_args):
-	import re_lib as rel
+def create_full_lm(order, src_path, file_mask, dst_path, tmp_path, vocab_file='', *smooth_args):
+	"create_full_lm arguments: order, src_path, file_mask, dst_path, tmp_path, vocab_file='', *smooth_args"
 
-	with dst_file.open('w') as df:
-		for line in src_file.xcat():
-			rl = rel.sub('[0-9,:"()\[\].„“-]', '', line)
-			df.write(rl+'\n')
-
-	return create_full_lm(order, dst_file.dirname(), dst_file.basename(), model_path, tmp_path, file_prefix, vocab_file, *smooth_args)
-
-
-def create_full_lm(order, src_path, file_mask, dst_path, tmp_path=None, vocab_file='', file_prefix='', *smooth_args):
-	"create_full_lm arguments: order, src_path, file_mask, dst_path, tmp_path, vocab_file='', file_prefix='', *smooth_args"
-
-	create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path, file_prefix)
-	create_lm(order, dst_path, dst_path, vocab_file, file_prefix, smooth_args)
+	create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path)
+	create_lm(order, dst_path, dst_path, vocab_file, smooth_args)
 
 
 def recode_utf_lm_cp1251(model_path):
@@ -1238,7 +1218,6 @@ def model_processor(order, test_text_path, paths, res_table):
 			save_results(model_name, res_match, res_table)
 		else:
 			logOut('Regex search failed. ngram output: %s'%ppl_report, ERROR)
-
 
 def create_mix_lms_ppl(order, file_mask, test_text_path, *src_paths):#, vocab_file=None
 	'create_mix_lms_ppl arguments: order, file_mask, *src_paths'

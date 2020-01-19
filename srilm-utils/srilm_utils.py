@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import math, shelve, cStringIO, contextlib, re, itertools as it
+import math, shelve, io, contextlib, re, itertools as it
 from ctypes import c_char_p, c_double, cdll
 import procUtils as pu
 from multiprocessing import Process, Pool, Queue, Manager
@@ -47,7 +47,7 @@ LM_KEY = 'Top 5000 LM'
 
 import datetime as dt
 def time_print(str):
-	print('%s  %s'%(dt.datetime.now().strftime(DATE_FORMAT), str))
+	print(('%s  %s'%(dt.datetime.now().strftime(DATE_FORMAT), str)))
 
 
 def parse_srilm_lm_iterator(srilm_lm):
@@ -55,7 +55,7 @@ def parse_srilm_lm_iterator(srilm_lm):
 	for i, line in enumerate(srilm_lm.xcat()):		
 		if i%line_log_threshold == 0:
 			#logOut('Lines processed: {0:n}'.format(i)
-			print '{0}\tLM file lines read: {1:g}'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), i)
+			print('{0}\tLM file lines read: {1:g}'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), i))
 		
 		line = line.strip('\r\n')
 		line_data = line.split('\t')
@@ -156,7 +156,7 @@ class SRILM_LM_Converter:
 		for i, line in enumerate(srilm_lm.xcat()):		
 			if i%line_log_threshold == 0:
 				#logOut('Lines processed: {0:n}'.format(i)
-				print '{0}\tLM file lines read: {1:g}'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), i)
+				print('{0}\tLM file lines read: {1:g}'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), i))
 			
 			line = line.strip('\r\n')
 			line_data = line.split('\t')
@@ -238,7 +238,7 @@ class SRILM_LM_Converter:
 		lm_filename = autoconvert(lm_filename)
 		ngram_dict = self.parse_srilm_lm(lm_filename, stats, False, lambda w, c, p, b: len(w)<=order, lambda w, c, p, b: order<len(w))
 
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Adding %d-grams to dictionary'%n)
 			#ngram_dict[n]
 			for i, (ngram, count, prob, bow) in enumerate(dict_n):
@@ -246,7 +246,7 @@ class SRILM_LM_Converter:
 				if i%line_log_threshold == 0:
 					logOut('Ngrams processed: %d'%i)
 
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Setting %d-gram probabilities/bows'%n)
 			for i, ngram_data in enumerate(dict_n):
 				self.add_ngram_to_db(*ngram_data)
@@ -284,27 +284,27 @@ class SRILM_LM_Converter:
 			if n>1:# or i>30000
 				break
 
-			if filter(ngram, count, prob, bow):
+			if list(filter(ngram, count, prob, bow)):
 				dict_n = ngram_dict.setdefault(n, {})
 				dict_n[ngram] = (count, prob, bow)
 
 		# save new dictionary to file for Anya
 		flt_dict = r'anya\dictUsed_filtered.txt'
 		with open((self.text_base_path + flt_dict).to_fs(), 'w') as filtered_dict_file:
-			filtered_dict_file.writelines([ngram[0]+'\n' for ngram in ngram_dict[1].keys()])
+			filtered_dict_file.writelines([ngram[0]+'\n' for ngram in list(ngram_dict[1].keys())])
 
 		ngram_dict[1][('pau',)] = (0, 0, None)
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Adding %d-grams to dictionary'%n)
 			#ngram_dict[n]
-			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.iteritems()):
+			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.items()):
 				self.add_ngram_to_db(ngram, count)
 				if i%line_log_threshold == 0:
 					logOut('Ngrams processed: %d'%i)
 
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Setting %d-gram probabilities/bows'%n)
-			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.iteritems()):
+			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.items()):
 				self.add_ngram_to_db(ngram, count, prob, bow)
 				if i%line_log_threshold == 0:
 					logOut('Ngrams processed: %d'%i)
@@ -334,17 +334,17 @@ class SRILM_LM_Converter:
 				dict_n[ngram] = (count, prob, bow)
 
 		self.prepare_conversion()
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Adding %d-grams to dictionary'%n)
 			#ngram_dict[n]
-			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.iteritems()):
+			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.items()):
 				self.add_ngram_to_db(ngram, count)
 				if i%line_log_threshold == 0:
 					logOut('Ngrams added to dictionary: %d'%i)
 
-		for n, dict_n in ngram_dict.iteritems():
+		for n, dict_n in ngram_dict.items():
 			logOut('Setting %d-gram probabilities/bows'%n)
-			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.iteritems()):
+			for i, (ngram, (count, prob, bow)) in enumerate(dict_n.items()):
 				self.add_ngram_to_db(ngram, count, prob, bow)
 				if i%line_log_threshold == 0:
 					logOut('Ngram probabilities exported: %d'%i)
@@ -362,7 +362,7 @@ class SRILM_LM_Converter:
 		srilm_ngc = model_path + DEFAULT_COUNTS_FILE
 		srilm_lm = model_path + DEFAULT_MODEL_FILE	
 
-		text_file = self.text_base_path+u'joint.txt'
+		text_file = self.text_base_path+'joint.txt'
 
 		#create_lm_cmd = (SRILM_PATH+'ngram-count').to_fs(), '-order', unicode(ngram_N), '-text', '%s'%text_file, '-write', \
 		#		'%s'%srilm_ngc, '-lm', '%s'%srilm_lm
@@ -503,10 +503,10 @@ def dict_2_ARPA_converter(lm_dict, lm_file):
 	with open(lm_file, 'w') as f:
 		
 		f.write('\\data\\\n') 
-		for n, ngram_list in lm_dict.iteritems():
+		for n, ngram_list in lm_dict.items():
 			f.write('ngram %d=%d\n'%(n, len(ngram_list))) 
 
-		for n, ngram_list in lm_dict.iteritems():
+		for n, ngram_list in lm_dict.items():
 			f.write('\n\n\\%d-grams:\n'%n)
 			logOut('Sorting %d-grams...'%n)
 			ngram_list.sort(lambda x, y: cmp(x[0], y[0]))
@@ -524,7 +524,7 @@ def dict_2_LFDC_converter(ngram_N, lm_dict, lfdc_file):
 	conv.ngram_N = ngram_N
 	conv.prepare_conversion()
 
-	for n, ngram_list in lm_dict.iteritems():
+	for n, ngram_list in lm_dict.items():
 		if n>ngram_N:
 			continue
 
@@ -537,7 +537,7 @@ def dict_2_LFDC_converter(ngram_N, lm_dict, lfdc_file):
 			conv.add_ngram_to_db(ngram, count)
 
 
-	for n, ngram_list in lm_dict.iteritems():
+	for n, ngram_list in lm_dict.items():
 		if n>ngram_N:
 			continue
 
@@ -577,7 +577,7 @@ def load_filter_5000():
 
 	filter_list = [line.strip('\n') for line in src_dict.xcat()]
 
-	print('Filter dictionary size: %d'%len(filter_list))
+	print(('Filter dictionary size: %d'%len(filter_list)))
 	return filter_list
 
 
@@ -598,8 +598,8 @@ def lm_filter(flt, filter_db, input_ng_cpb_queue, output_ng_cpb_queue):
 		#print 'FFW: ', filter_list[2].decode('cp1251')
 		#print 'filter checking for task FW', task[0][0].decode('cp1251')
 		if flt(filter_list, filter_db, *task):
-			print 'filter passed'
-			print 'Task %s passed filter and queued to export'%str(task.decode('cp1251'))
+			print('filter passed')
+			print('Task %s passed filter and queued to export'%str(task.decode('cp1251')))
 			output_ng_cpb_queue.put(task)
 
 		task = input_ng_cpb_queue.get()
@@ -617,7 +617,7 @@ class SRILM_LM_MP_Converter(SRILM_LM_Converter):
 	def srilm_lm_importer(self, input_ng_cpb_queue):
 		#input_ng_cpb_queue = self.input_ng_cpb_queue
 		iter = self.parse_srilm_lm_iter(self.lm_filename, self.stats)
-		map(input_ng_cpb_queue.put, iter)
+		list(map(input_ng_cpb_queue.put, iter))
 		input_ng_cpb_queue.put(None)
 
 
@@ -1223,7 +1223,7 @@ def model_processor(order, test_text_path, paths, res_table):
 	else:
 		logOut("Model %s already exists"%model_name)
 
-	with contextlib.closing(cStringIO.StringIO()) as res_out:
+	with contextlib.closing(io.StringIO()) as res_out:
 #		if res_file_path.exists():
 #			logOut("Perplexity for %s already exists"%model_path)
 #			return
@@ -1256,7 +1256,7 @@ def create_mix_lms_ppl(order, file_mask, test_text_path, *src_paths):#, vocab_fi
 		res_table.write('%s\nModel;OOV;PPL;PPL excluding end-of-sentence tags;\n'%test_text_path)
 
 		threads = []
-		i_range = range(1, len(src_paths)+1)
+		i_range = list(range(1, len(src_paths)+1))
 		n = len(src_paths)
 		total_combs = sum([math.factorial(n) / math.factorial(r) / math.factorial(n-r) for r in i_range])
 		j = 0
@@ -1308,7 +1308,7 @@ def lab_folder_ppl(folder_path, model_path, temp_file):
 	temp_file = FilePathName(temp_file)
 	
 	if not model_path.exists():
-		logOut(u'%s language model does not exist!'%model_path, ERROR)
+		logOut('%s language model does not exist!'%model_path, ERROR)
 		return 
 
 	text_filename = temp_file#FilePathName(os.tmpnam())
@@ -1318,7 +1318,7 @@ def lab_folder_ppl(folder_path, model_path, temp_file):
 			txt = markup_utils.getLabTextOnly(src_file).replace('\r', '').lower().encode('utf8')
 			text.write(txt+'\n')
 
-	with contextlib.closing(cStringIO.StringIO()) as res_out:
+	with contextlib.closing(io.StringIO()) as res_out:
 #		if res_file_path.exists():
 #			logOut("Perplexity for %s already exists"%model_path)
 #			return
