@@ -1,13 +1,10 @@
 FROM cka3o4nik/jupyter3_notebook:simple
+#FROM cka3o4nik/text_authoring:SRILM
 
-#RUN apt-get update
-#RUN apt-get install 
+RUN apt-get update
 
-ADD requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip install -U PIP
-#RUN pip install pymavlink==2.2.10
-RUN python3 -c "import nltk; nltk.download('punkt')"
+RUN pip install -U pip
+#ADD SRILM /SRILM
 
 RUN apt-get clean
 WORKDIR /notebooks

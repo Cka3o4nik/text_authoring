@@ -1,3 +1,7 @@
+input/
+SRILM/
+tmp/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -11,7 +15,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-input/
 build/
 develop-eggs/
 dist/
