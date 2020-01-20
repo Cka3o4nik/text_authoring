@@ -20,13 +20,10 @@ if os_type_is_nt:
 	#SRILM_PATH = ShellCmd(PUBLIC+'Workdata/SRILM/built/cygwin')
 	SRILM_PATH = ShellCmd(PUBLIC+'Workdata/SRILM/built/cygwin_c')
 else:	
-	PUBLIC = FilePathName('/mnt/public')
 	#SRILM_PATH = PUBLIC+'Workdata/SRILM/built/cygwin-build'
-	SRILM_PATH = ShellCmd()
+	SRILM_PATH = ShellCmd('/SRILM/bin/i686-m64')
 
-SHARE = PUBLIC+'share/m.frolov'
 SCRIPT_PATH = FilePathName(SCRIPT_FOLDER)
-TEXT_BASE_PATH = SHARE+'speech_texts'
 #TEXT_BASE_PATH =SCRIPT_PATH
 
 nNG_WORDS_IDX = nPROB_IDX = 0
@@ -825,7 +822,7 @@ def ng_count(afWait=True, input_text=None, *add_args):
 	cmd = ShellCmd(CREATE_STAT_CMD_TMPL)
 	#cmd.append_arg('-tolower')
 	cmd.extend_args(*add_args)
-	return cmd.launch(afWait, stdindata=input_text, stdin=sys.stdin)
+	return cmd.launch(afWait, stdindata=input_text, stdin=subprocess.PIPE)
 
 
 def create_srilm_lm(counts_filename, afWait=True, input_text=None, *add_args):
@@ -1342,7 +1339,7 @@ CREATE_STAT_CMD_TMPL = ShellCmd(NG_COUNT_CMD_TMPL)
 CREATE_STAT_CMD_TMPL.append_arg('-sort')
 COUNTS_EXT = '.counts'
 
-cfgConsoleLoggerParams(FILE_UTILS_LOGGER)
+cfgConsoleLoggerParams(FILE_UTILS_LOGGER, minLogLevel=DEBUG)
 
 if 1<len(sys.argv):
 	function = sys.argv[1]

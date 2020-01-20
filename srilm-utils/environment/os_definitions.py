@@ -1,13 +1,12 @@
 # -*- coding: UTF-8 -*-
 
 import os, sys
-#from fileUtils import *
 
 strFILENAME_ENCODING = sys.getfilesystemencoding()
 SYS_ENC = sys.getdefaultencoding()
 strSTDOUT_ENC = sys.stdout.encoding or "utf8"
 
-if False:#False #True
+if False: #False #True
 	print('sys.getdefaultencoding    = ' + SYS_ENC)
 	print('sys.getfilesystemencoding = ' + strFILENAME_ENCODING)
 	print('sys.stdin.encoding        = ' + sys.stdin.encoding)

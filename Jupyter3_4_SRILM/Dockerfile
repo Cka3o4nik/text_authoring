@@ -1,9 +1,9 @@
-FROM cka3o4nik/jupyter2
+FROM cka3o4nik/jupyter3_notebook:simple
 #FROM cka3o4nik/text_authoring:SRILM
 
 RUN apt-get update
 
-RUN pip2 install -U pip
+RUN pip3 install -U pip
 #ADD SRILM /SRILM
 
 RUN apt-get clean

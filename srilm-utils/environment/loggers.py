@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 
 import os, os.path as op, time, socket, inspect
-#import os, os.path as op, sys, time, logging, socket, inspect, traceback
 
 from loggers_console import *
 from os_definitions import *
@@ -14,8 +13,8 @@ else:
 	dfltLOG_SUBFOLDER = 'logs/'
 
 SCRIPT_FILENAME = sys.argv[0]
-DEFAULT_LOG_FILENAME = op.basename(SCRIPT_FILENAME)+'_'+PC_NAME
-SCRIPT_FOLDER = op.dirname(SCRIPT_FILENAME).decode(strFILENAME_ENCODING)
+DEFAULT_LOG_FILENAME = 'srilm-utils' # op.basename(SCRIPT_FILENAME)
+SCRIPT_FOLDER = '' # op.dirname(SCRIPT_FILENAME)
 defaultLOG_FOLDER = op.join(SCRIPT_FOLDER, dfltLOG_SUBFOLDER)
 
 FILE_ONLY_LOGGER = 'FileOnlyLogger'
@@ -30,7 +29,7 @@ def configureFileLogger(astrLogFilename=DEFAULT_LOG_FILENAME, minLogLevel=loggin
 	  pass
 	
 	# create file handler and set level to debug
-	fh = logging.FileHandler('%s%s_%s.log'%(astrLogFolder, astrLogFilename, time.strftime('%Y-%m-%d_%H-%M-%S')))
+	fh = logging.FileHandler(u'%s%s_%s.log'%(astrLogFolder, astrLogFilename, time.strftime('%Y-%m-%d_%H-%M-%S')))
 	fh.setLevel(fileLogLevel)#logging.NOTSET
 	
 	# add formatter to fh
