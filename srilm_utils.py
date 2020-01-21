@@ -1065,7 +1065,7 @@ def create_ngram_stats(order, src_path, file_mask, dst_path, tmp_path=None, file
 				count_files.append(counts_fname)
 
 			cur_block_len += len(line)
-			ngc_stats_proc.stdin.write(line.encode('utf8')+'\n')
+			ngc_stats_proc.stdin.write(line+'\n')#.encode('utf8')
 			i += 1
 	
 	logDbg("Closing last stdin...")
@@ -1339,7 +1339,8 @@ CREATE_STAT_CMD_TMPL = ShellCmd(NG_COUNT_CMD_TMPL)
 CREATE_STAT_CMD_TMPL.append_arg('-sort')
 COUNTS_EXT = '.counts'
 
-cfgConsoleLoggerParams(FILE_UTILS_LOGGER, minLogLevel=DEBUG)
+#cfgConsoleLoggerParams(FILE_UTILS_LOGGER, minLogLevel=DEBUG)
+cfgConsoleLoggerParams(FILE_UTILS_LOGGER, minLogLevel=INFO)
 
 if 1<len(sys.argv):
 	function = sys.argv[1]

@@ -102,12 +102,18 @@ class FilePathNameBase:
   def join(self, astrOtherPath):
 #   return os.path.join(self.path, autoenc(astrOtherPath))
     connector = ''
-#   logVar('self: %r, arg: %r'%(self.path, autoconvert_str(astrOtherPath)), logger_name = FILE_UTILS_LOGGER)
+    strOtherPathAutoenc = autoenc(astrOtherPath)
+    logVar('self: %r, arg: %r'%(self.path, strOtherPathAutoenc), logger_name = FILE_UTILS_LOGGER)
     if len(self.path) and len(autoconvert(astrOtherPath)):
-      if self.path[-1]!=SEP and astrOtherPath[0]!=SEP:
+      if self.path[-1]!=SEP and strOtherPathAutoenc[0]!=SEP:
         connector = SEP
 
-    return self.path + connector + autoenc(astrOtherPath)
+    #logVar('connector: %r'%connector, logger_name = FILE_UTILS_LOGGER)
+
+    #return self.path + connector + strOtherPathAutoenc
+    return os.path.join(self.path, astrOtherPath)
+    return os.path.join(self.path, strOtherPathAutoenc)
+    
 #   return self.__class__(self.path + connector + autoenc(astrOtherPath))
 
     #return os.path.join(self.path, self.__class__(astrOtherPath))
